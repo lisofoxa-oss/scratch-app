@@ -65,7 +65,26 @@ textarea.input{min-height:80px;resize:vertical;line-height:1.5;font-size:.86rem}
 </head>
 <body>
 
-<div class="wrap">
+<div class="wrap" id="gateScreen" style="display:none">
+  <div style="text-align:center;padding-top:80px">
+    <div style="font-size:3rem;margin-bottom:16px" id="gateEmoji">⏳</div>
+    <h1 id="gateTitle" style="margin-bottom:8px">Подожди немного</h1>
+    <div style="font-size:.9rem;color:var(--dim);margin-bottom:20px;line-height:1.6" id="gateText">Можно отправлять одну карточку раз в 5 минут</div>
+    <div style="font-size:2rem;font-weight:800;color:var(--gold);margin-bottom:8px" id="gateTimer"></div>
+    <div style="font-size:.75rem;color:var(--dim)" id="gateTimerLabel"></div>
+  </div>
+</div>
+
+<div class="wrap" id="noTgScreen" style="display:none">
+  <div style="text-align:center;padding-top:80px">
+    <div style="font-size:3rem;margin-bottom:16px">🔒</div>
+    <h1 style="margin-bottom:12px">Откройте через Telegram</h1>
+    <div style="font-size:.88rem;color:var(--dim);margin-bottom:24px;line-height:1.6">Эта страница работает только внутри Telegram бота</div>
+    <a href="https://t.me/SnowySunsetBot" style="display:inline-block;padding:13px 28px;background:linear-gradient(135deg,var(--a2),var(--a1));border-radius:14px;color:#fff;font-weight:700;text-decoration:none;font-size:.95rem">Открыть бота →</a>
+  </div>
+</div>
+
+<div class="wrap" id="mainWrap" style="display:none">
   <h1>✨ Создать карточку</h1>
   <div class="sub">Выбери тип, заполни и отправь ссылку</div>
 
@@ -150,6 +169,59 @@ const API = 'https://snowy-sunset-86b7.lisofoxa.workers.dev';
 const tgApp = window.Telegram?.WebApp;
 if (tgApp) tgApp.expand();
 
+// ====== GATE: Check Telegram + Rate Limit on load ======
+(async function init() {
+  // Not in Telegram?
+  const userId = tgApp?.initDataUnsafe?.user?.id;
+  if (!tgApp || !userId) {
+    document.getElementById('noTgScreen').style.display = 'block';
+    return;
+  }
+
+  // Check rate limit
+  try {
+    const res = await fetch(API + '/api/check-limit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user_id: userId }),
+    });
+    const data = await res.json();
+
+    if (!data.ok) {
+      showWaitScreen(data.wait_seconds || data.wait_minutes * 60);
+      return;
+    }
+  } catch (e) {
+    // If check fails, let them through
+  }
+
+  // All good — show form
+  document.getElementById('mainWrap').style.display = 'block';
+})();
+
+function showWaitScreen(totalSecs) {
+  const gate = document.getElementById('gateScreen');
+  gate.style.display = 'block';
+
+  let remaining = totalSecs;
+  function tick() {
+    if (remaining <= 0) {
+      // Time's up — show form
+      gate.style.display = 'none';
+      document.getElementById('mainWrap').style.display = 'block';
+      return;
+    }
+    const m = Math.floor(remaining / 60);
+    const s = remaining % 60;
+    document.getElementById('gateTimer').textContent =
+      m > 0 ? `${m}:${s.toString().padStart(2,'0')}` : `${s} сек`;
+    document.getElementById('gateTimerLabel').textContent = 'до следующей карточки';
+    remaining--;
+    setTimeout(tick, 1000);
+  }
+  tick();
+}
+
 // Toggle logic
 document.querySelectorAll('.row, .tod-row').forEach(row => {
   row.querySelectorAll('.tog, .tod-btn').forEach(btn => {
@@ -211,7 +283,13 @@ async function create() {
 
     const data = await res.json();
     if (!res.ok) {
-      showErr(data.message || data.error || 'Ошибка');
+      if (data.error === 'rate_limit' && data.wait_minutes) {
+        // Hide form, show wait screen
+        document.getElementById('mainWrap').style.display = 'none';
+        showWaitScreen(data.wait_minutes * 60);
+      } else {
+        showErr(data.message || data.error || 'Ошибка');
+      }
       btn.disabled = false; btn.textContent = 'Создать карточку ✨';
       return;
     }
