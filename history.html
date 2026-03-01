@@ -168,15 +168,19 @@ function renderPending(items) {
   const word = items.length === 1 ? 'карточка' : items.length < 5 ? 'карточки' : 'карточек';
   box.innerHTML = `
     <div class="pending-title">🎴 ${items.length} нераскрытых ${word}!</div>
-    <div class="pending-sub">Закрой историю и открой их в боте</div>
+    <div class="pending-sub">Нажми чтобы стереть и посмотреть</div>
     <div class="pending-cards">
       ${items.map(c => {
         const em = TYPE[c.card_type] || '💌';
         const from = c.sender?.first_name || 'Кто-то';
-        return `<div class="pending-card">${em} от ${escapeHtml(from)}</div>`;
+        return `<div class="pending-card" onclick="openPending('${c.id}')">${em} от ${escapeHtml(from)}</div>`;
       }).join('')}
     </div>
   `;
+}
+
+function openPending(cardId) {
+  window.location.href = 'card.html?id=' + cardId;
 }
 
 function renderList(type, items) {
