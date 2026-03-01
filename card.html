@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Карточка ✨</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0f0a1a;--card:#1a1228;--a1:#e8a87c;--a2:#d4789c;--gold:#f5d680;--tx:#f0e6d8;--dim:#9a8fb0}
+html,body{min-height:100dvh;font-family:'Nunito',sans-serif;background:var(--bg);color:var(--tx);overflow:hidden;-webkit-tap-highlight-color:transparent;touch-action:manipulation;user-select:none}
+body{background:radial-gradient(ellipse 80% 60% at 20% 10%,rgba(212,120,156,.12)0,transparent 60%),radial-gradient(ellipse 60% 50% at 80% 90%,rgba(232,168,124,.1)0,transparent 60%),var(--bg);display:flex;align-items:center;justify-content:center;flex-direction:column;padding:20px}
+
+.stars{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+.star{position:absolute;width:2px;height:2px;background:#fff;border-radius:50%;animation:tw var(--d) ease-in-out infinite alternate;opacity:0}
+@keyframes tw{from{opacity:.1}to{opacity:var(--o,.7)}}
+
+.header{text-align:center;margin-bottom:16px;z-index:1;animation:fd .6s ease-out}
+@keyframes fd{from{opacity:0;transform:translateY(-12px)}to{opacity:1}}
+.header h1{font-family:'Cormorant Garamond',serif;font-size:1.6rem;color:var(--gold);margin-bottom:4px}
+.header p{font-size:.85rem;color:var(--dim)}
+
+.card-area{position:relative;width:280px;height:370px;z-index:1;animation:ci .5s ease-out}
+@keyframes ci{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:none}}
+
+.card-content{position:absolute;inset:0;border-radius:20px;background:var(--card);border:1px solid rgba(255,255,255,.06);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px 18px;text-align:center}
+.card-content .emoji{font-size:3rem;margin-bottom:14px}
+.card-content .cat-label{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;color:var(--a2)}
+.card-content .msg{font-size:.95rem;line-height:1.6;color:var(--tx)}
+
+.card-area canvas{position:absolute;inset:0;width:100%;height:100%;border-radius:20px;touch-action:none;z-index:2}
+.card-area.revealed canvas{display:none}
+.card-area.revealed{animation:rp .4s ease-out}
+@keyframes rp{0%{transform:scale(1)}50%{transform:scale(1.04)}100%{transform:scale(1)}}
+
+.loading{text-align:center;font-size:.9rem;color:var(--dim);z-index:1}
+.error-msg{text-align:center;font-size:.9rem;color:#ff8888;z-index:1}
+
+.ptc{position:fixed;inset:0;pointer-events:none;z-index:200}
+.pt{position:absolute;border-radius:50%;animation:pu .7s ease-out forwards}
+@keyframes pu{0%{transform:scale(0) translate(0,0);opacity:1}100%{transform:scale(1) translate(var(--tx),var(--ty));opacity:0}}
+
+.close-hint{position:fixed;bottom:20px;font-size:.78rem;color:var(--dim);z-index:1;opacity:0;transition:opacity .5s}
+.close-hint.show{opacity:1}
+</style>
+</head>
+<body>
+
+<div class="stars" id="stars"></div>
+<div class="ptc" id="ptc"></div>
+
+<div class="header" id="header" style="display:none">
+  <h1 id="titleText">Карточка для тебя ✨</h1>
+  <p>Стирай пальцем и открывай</p>
+</div>
+
+<div class="card-area" id="cardArea" style="display:none">
+  <div class="card-content">
+    <div class="emoji" id="cardEmoji">💫</div>
+    <div class="cat-label" id="cardLabel">Комплимент</div>
+    <div class="msg" id="cardMsg"></div>
+  </div>
+  <canvas id="scratchCanvas"></canvas>
+</div>
+
+<div class="loading" id="loading">Загружаю карточку...</div>
+<div class="error-msg" id="errMsg" style="display:none"></div>
+<div class="close-hint" id="closeHint">Нажми чтобы закрыть</div>
+
+<script>
+const API = 'https://snowy-sunset-86b7.lisofoxa.workers.dev';
+const tgApp = window.Telegram?.WebApp;
+if (tgApp) tgApp.expand();
+
+// Stars
+!function(){const c=document.getElementById('stars');for(let i=0;i<50;i++){const s=document.createElement('div');s.className='star';s.style.left=Math.random()*100+'%';s.style.top=Math.random()*100+'%';s.style.setProperty('--d',(1.5+Math.random()*3)+'s');s.style.setProperty('--o',(0.3+Math.random()*0.5).toFixed(2));s.style.animationDelay=Math.random()*3+'s';if(Math.random()>.7){s.style.width='3px';s.style.height='3px'}c.appendChild(s)}}();
+
+// Sparkles
+function spark(x,y){const p=document.getElementById('ptc');const cs=['#f5d680','#e8a87c','#d4789c','#fff'];for(let i=0;i<14;i++){const d=document.createElement('div');d.className='pt';d.style.left=x+'px';d.style.top=y+'px';d.style.width=d.style.height=(3+Math.random()*5)+'px';d.style.background=cs[Math.floor(Math.random()*cs.length)];const a=Math.PI*2/14*i+(Math.random()-.5),r=40+Math.random()*60;d.style.setProperty('--tx',Math.cos(a)*r+'px');d.style.setProperty('--ty',Math.sin(a)*r+'px');p.appendChild(d);setTimeout(()=>d.remove(),700)}}
+
+// Get card ID from URL
+const params = new URLSearchParams(window.location.search);
+const cardId = params.get('id');
+
+if (!cardId) {
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('errMsg').style.display = 'block';
+  document.getElementById('errMsg').textContent = 'Карточка не найдена 😔';
+} else {
+  loadCard(cardId);
+}
+
+async function loadCard(id) {
+  try {
+    const userId = tgApp?.initDataUnsafe?.user?.id;
+    const res = await fetch(API + '/api/card', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, opened_by: userId }),
+    });
+
+    if (!res.ok) {
+      throw new Error('Карточка не найдена');
+    }
+
+    const card = await res.json();
+
+    // Set content
+    document.getElementById('cardEmoji').textContent =
+      card.category === 'compliment' ? '💫' :
+      card.category === 'gift' ? '🎁' :
+      card.category === 'task' ? '✨' : '💌';
+
+    document.getElementById('cardLabel').textContent =
+      card.category === 'compliment' ? 'Комплимент' :
+      card.category === 'gift' ? 'Подарок' :
+      card.category === 'task' ? 'Задание' : 'Послание';
+
+    // Color
+    const lbl = document.getElementById('cardLabel');
+    if (card.category === 'gift') lbl.style.color = 'var(--gold)';
+    else if (card.category === 'task') lbl.style.color = 'var(--a1)';
+
+    document.getElementById('cardMsg').textContent = card.text;
+
+    if (card.recipient_name) {
+      document.getElementById('titleText').textContent = card.recipient_name + ', это для тебя ✨';
+    }
+
+    // Show card
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('header').style.display = 'block';
+    document.getElementById('cardArea').style.display = 'block';
+
+    // Setup scratch
+    setTimeout(setupScratch, 100);
+  } catch (e) {
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('errMsg').style.display = 'block';
+    document.getElementById('errMsg').textContent = e.message || 'Ошибка загрузки 😔';
+  }
+}
+
+function setupScratch() {
+  const canvas = document.getElementById('scratchCanvas');
+  const ctx = canvas.getContext('2d');
+  let isDrawing = false, revealed = false;
+  const brushR = 26;
+  const gridCols = 18, gridRows = 24;
+  const grid = Array.from({length:gridRows},()=>new Uint8Array(gridCols));
+  let W, H;
+
+  function resize() {
+    W = canvas.clientWidth; H = canvas.clientHeight;
+    if (!W || !H) { requestAnimationFrame(resize); return; }
+    const dpr = devicePixelRatio || 1;
+    canvas.width = W * dpr; canvas.height = H * dpr;
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    drawCover();
+  }
+
+  function drawCover() {
+    ctx.save();
+    const r = 20;
+    ctx.beginPath();
+    ctx.moveTo(r,0);ctx.lineTo(W-r,0);ctx.quadraticCurveTo(W,0,W,r);
+    ctx.lineTo(W,H-r);ctx.quadraticCurveTo(W,H,W-r,H);
+    ctx.lineTo(r,H);ctx.quadraticCurveTo(0,H,0,H-r);
+    ctx.lineTo(0,r);ctx.quadraticCurveTo(0,0,r,0);
+    ctx.closePath();ctx.clip();
+
+    const g = ctx.createLinearGradient(0,0,W,H);
+    g.addColorStop(0,'#2a1e40');g.addColorStop(1,'#1e1535');
+    ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+
+    ctx.strokeStyle='rgba(255,255,255,.04)';ctx.lineWidth=1;
+    for(let i=-H;i<W+H;i+=18){ctx.beginPath();ctx.moveTo(i,0);ctx.lineTo(i+H,H);ctx.stroke()}
+
+    ctx.font='40px serif';ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillStyle='rgba(255,255,255,.15)';ctx.fillText('?',W/2,H/2);
+
+    ctx.font='600 10px Nunito,sans-serif';
+    ctx.fillStyle='rgba(255,255,255,.2)';ctx.fillText('СТИРАЙ ✨',W/2,H-24);
+    ctx.restore();
+  }
+
+  function markGrid(cx,cy){
+    if(!W||!H)return;
+    const cw=W/gridCols,ch=H/gridRows;
+    const c1=Math.max(0,Math.floor((cx-brushR)/cw)),c2=Math.min(gridCols-1,Math.floor((cx+brushR)/cw));
+    const r1=Math.max(0,Math.floor((cy-brushR)/ch)),r2=Math.min(gridRows-1,Math.floor((cy+brushR)/ch));
+    for(let r=r1;r<=r2;r++)for(let c=c1;c<=c2;c++)grid[r][c]=1;
+  }
+
+  function pct(){let s=0,t=gridCols*gridRows;for(let r=0;r<gridRows;r++)for(let c=0;c<gridCols;c++)if(grid[r][c])s++;return s/t}
+
+  function scratch(pos){
+    ctx.save();ctx.globalCompositeOperation='destination-out';
+    ctx.beginPath();ctx.arc(pos.x,pos.y,brushR,0,Math.PI*2);ctx.fill();
+    ctx.restore();markGrid(pos.x,pos.y);
+  }
+
+  function tryReveal(){
+    if(revealed)return;
+    if(pct()>=.50){
+      revealed=true;
+      canvas.style.transition='opacity .4s ease-out';canvas.style.opacity='0';
+      setTimeout(()=>{
+        document.getElementById('cardArea').classList.add('revealed');
+        const rect=document.getElementById('cardArea').getBoundingClientRect();
+        spark(rect.left+rect.width/2,rect.top+rect.height/2);
+        spark(rect.left+rect.width*.3,rect.top+rect.height*.4);
+        spark(rect.left+rect.width*.7,rect.top+rect.height*.6);
+        document.getElementById('closeHint').classList.add('show');
+      },300);
+    }
+  }
+
+  function getPos(e){const r=canvas.getBoundingClientRect();const t=e.touches?e.touches[0]:e;return{x:t.clientX-r.left,y:t.clientY-r.top}}
+
+  canvas.addEventListener('mousedown',e=>{isDrawing=true;scratch(getPos(e))});
+  canvas.addEventListener('mousemove',e=>{if(isDrawing)scratch(getPos(e))});
+  canvas.addEventListener('mouseup',()=>{isDrawing=false;tryReveal()});
+  canvas.addEventListener('mouseleave',()=>{isDrawing=false});
+  canvas.addEventListener('touchstart',e=>{e.preventDefault();isDrawing=true;scratch(getPos(e))},{passive:false});
+  canvas.addEventListener('touchmove',e=>{e.preventDefault();if(isDrawing)scratch(getPos(e))},{passive:false});
+  canvas.addEventListener('touchend',()=>{isDrawing=false;tryReveal()});
+
+  requestAnimationFrame(()=>requestAnimationFrame(resize));
+  window.addEventListener('resize',()=>{if(!revealed)resize()});
+}
+
+// Close hint click
+document.getElementById('closeHint').addEventListener('click',()=>{
+  if(tgApp)tgApp.close();
+});
+</script>
+</body>
+</html>

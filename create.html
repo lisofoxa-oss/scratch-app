@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Создать карточку</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0f0a1a;--card:#1a1228;--a1:#e8a87c;--a2:#d4789c;--gold:#f5d680;--tx:#f0e6d8;--dim:#9a8fb0}
+html,body{min-height:100dvh;font-family:'Nunito',sans-serif;background:var(--bg);color:var(--tx);-webkit-tap-highlight-color:transparent}
+body{background:radial-gradient(ellipse 80% 60% at 20% 10%,rgba(212,120,156,.12)0,transparent 60%),radial-gradient(ellipse 60% 50% at 80% 90%,rgba(232,168,124,.1)0,transparent 60%),var(--bg);padding:20px 16px 100px}
+
+.wrap{max-width:440px;margin:0 auto}
+h1{font-size:1.4rem;font-weight:800;text-align:center;margin-bottom:4px;color:var(--gold)}
+.sub{font-size:.85rem;color:var(--dim);text-align:center;margin-bottom:28px}
+
+.field{margin-bottom:22px}
+.label{font-size:.8rem;font-weight:700;color:var(--dim);margin-bottom:8px;letter-spacing:.03em}
+.input{width:100%;padding:13px 16px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:14px;color:var(--tx);font-family:'Nunito',sans-serif;font-size:.95rem;outline:none;transition:all .2s}
+.input:focus{border-color:rgba(245,214,128,.3);background:rgba(255,255,255,.06)}
+.input::placeholder{color:var(--dim);opacity:.5}
+
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.tog{flex:1;min-width:0;padding:11px 6px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:14px;color:var(--dim);font-family:'Nunito',sans-serif;font-size:.82rem;font-weight:600;cursor:pointer;transition:all .2s;text-align:center}
+.tog:active{transform:scale(.97)}
+.tog.on{background:rgba(245,214,128,.1);border-color:rgba(245,214,128,.3);color:var(--gold)}
+.tog .em{display:block;font-size:1.2rem;margin-bottom:3px}
+.tog .tx{display:block;font-size:.7rem}
+
+textarea.input{min-height:90px;resize:vertical;line-height:1.5;font-size:.88rem}
+.hint{margin-top:5px;font-size:.7rem;color:var(--dim);opacity:.6}
+
+.send-btn{display:block;width:100%;padding:15px;background:linear-gradient(135deg,var(--a2),var(--a1));border:none;border-radius:16px;color:#fff;font-family:'Nunito',sans-serif;font-size:1rem;font-weight:700;cursor:pointer;transition:all .3s;box-shadow:0 4px 18px rgba(212,120,156,.3);margin-top:8px}
+.send-btn:active{transform:scale(.97)}
+.send-btn:disabled{opacity:.5;cursor:not-allowed}
+
+.result{display:none;text-align:center;margin-top:24px;padding:20px;background:rgba(255,255,255,.03);border:1px solid rgba(245,214,128,.15);border-radius:16px}
+.result.show{display:block}
+.result .link{font-size:.82rem;color:var(--gold);word-break:break-all;margin:12px 0;line-height:1.5}
+.result .info{font-size:.85rem;color:var(--tx);margin-bottom:8px}
+
+.error{display:none;text-align:center;padding:12px;background:rgba(255,80,80,.1);border:1px solid rgba(255,80,80,.2);border-radius:12px;margin-top:12px;font-size:.85rem;color:#ff8888}
+.error.show{display:block}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <h1>✨ Создать карточку</h1>
+  <div class="sub">Выбери параметры и отправь ссылку</div>
+
+  <div class="field">
+    <div class="label">Имя получателя</div>
+    <input type="text" class="input" id="name" placeholder="Например, Аня" maxlength="30">
+  </div>
+
+  <div class="field">
+    <div class="label">Кому?</div>
+    <div class="row" id="gender">
+      <button class="tog on" data-v="f"><span class="em">👩</span><span class="tx">Девушке</span></button>
+      <button class="tog" data-v="m"><span class="em">👨</span><span class="tx">Парню</span></button>
+    </div>
+  </div>
+
+  <div class="field">
+    <div class="label">Настроение</div>
+    <div class="row" id="tone">
+      <button class="tog" data-v="friend"><span class="em">🤝</span><span class="tx">Друзья</span></button>
+      <button class="tog on" data-v="flirt"><span class="em">😏</span><span class="tx">Флирт</span></button>
+      <button class="tog" data-v="romance"><span class="em">💕</span><span class="tx">Романтика</span></button>
+      <button class="tog" data-v="love"><span class="em">❤️</span><span class="tx">Любовь</span></button>
+    </div>
+  </div>
+
+  <div class="field">
+    <div class="label">Свой текст <span style="opacity:.5">(необязательно)</span></div>
+    <textarea class="input" id="custom" placeholder="Если пустое — подберётся случайный комплимент или задание"></textarea>
+    <div class="hint">Подставится в карточку как есть</div>
+  </div>
+
+  <button class="send-btn" id="sendBtn" onclick="create()">Создать карточку ✨</button>
+
+  <div class="error" id="error"></div>
+
+  <div class="result" id="result">
+    <div class="info">✅ Карточка создана! Ссылка отправлена тебе в бот 💌</div>
+    <div class="link" id="resultLink"></div>
+  </div>
+</div>
+
+<script>
+const API = 'https://snowy-sunset-86b7.lisofoxa.workers.dev';
+const tgApp = window.Telegram?.WebApp;
+if (tgApp) tgApp.expand();
+
+// Toggle buttons
+document.querySelectorAll('.row').forEach(row => {
+  row.querySelectorAll('.tog').forEach(btn => {
+    btn.addEventListener('click', () => {
+      row.querySelectorAll('.tog').forEach(b => b.classList.remove('on'));
+      btn.classList.add('on');
+    });
+  });
+});
+
+function getVal(id) {
+  return document.querySelector(`#${id} .tog.on`)?.dataset.v;
+}
+
+async function create() {
+  const name = document.getElementById('name').value.trim();
+  if (!name) {
+    showError('Введи имя получателя');
+    return;
+  }
+
+  const senderId = tgApp?.initDataUnsafe?.user?.id;
+  const senderName = tgApp?.initDataUnsafe?.user?.first_name;
+  if (!senderId) {
+    showError('Открой через Telegram бота');
+    return;
+  }
+
+  const btn = document.getElementById('sendBtn');
+  btn.disabled = true;
+  btn.textContent = 'Создаём...';
+  hideError();
+
+  try {
+    const res = await fetch(API + '/api/create', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        sender_id: senderId,
+        sender_name: senderName,
+        recipient_name: name,
+        gender: getVal('gender') || 'f',
+        tone: getVal('tone') || 'flirt',
+        custom_text: document.getElementById('custom').value.trim(),
+      }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      showError(data.message || data.error || 'Ошибка');
+      btn.disabled = false;
+      btn.textContent = 'Создать карточку ✨';
+      return;
+    }
+
+    document.getElementById('resultLink').textContent = data.link;
+    document.getElementById('result').classList.add('show');
+    btn.textContent = 'Готово! ✅';
+
+    // Close Web App after delay
+    setTimeout(() => {
+      if (tgApp) tgApp.close();
+    }, 2000);
+  } catch (e) {
+    showError('Ошибка сети, попробуй ещё раз');
+    btn.disabled = false;
+    btn.textContent = 'Создать карточку ✨';
+  }
+}
+
+function showError(msg) {
+  const el = document.getElementById('error');
+  el.textContent = msg;
+  el.classList.add('show');
+}
+function hideError() {
+  document.getElementById('error').classList.remove('show');
+}
+</script>
+</body>
+</html>
