@@ -113,8 +113,10 @@ textarea.input{min-height:80px;resize:vertical;line-height:1.5;font-size:.86rem}
 
   <!-- Name + Gender (always shown) -->
   <div class="field">
-    <div class="label">Имя получателя</div>
-    <input type="text" class="input" id="name" placeholder="Например, Евлампия" maxlength="30">
+    <div class="label">Как зовут получателя?</div>
+    <input type="text" class="input" id="name" placeholder="Например, Евлампия" maxlength="30" oninput="updatePreview()">
+    <div class="hint">Пиши как зовут: Алиса, а не Алисе</div>
+    <div style="margin-top:8px;font-size:.82rem;color:var(--dim);min-height:1.2em" id="namePreview"></div>
   </div>
 
   <div class="field">
@@ -306,6 +308,16 @@ async function create() {
 
 function showErr(m) { const e = document.getElementById('error'); e.textContent = m; e.classList.add('show'); }
 function hideErr() { document.getElementById('error').classList.remove('show'); }
+
+function updatePreview() {
+  const name = document.getElementById('name').value.trim();
+  const preview = document.getElementById('namePreview');
+  if (name) {
+    preview.innerHTML = 'Получатель увидит: <span style="color:var(--gold)">«' + name + ', это для тебя ✨»</span>';
+  } else {
+    preview.textContent = '';
+  }
+}
 </script>
 </body>
 </html>

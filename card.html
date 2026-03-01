@@ -68,6 +68,12 @@ body{background:radial-gradient(ellipse 80% 60% at 20% 10%,rgba(212,120,156,.12)
 
 <div class="loading" id="loading">Загружаю карточку...</div>
 <div class="error-msg" id="errMsg" style="display:none"></div>
+<div style="display:none;text-align:center;padding-top:80px;z-index:1" id="noTgCard">
+  <div style="font-size:3rem;margin-bottom:16px">🔒</div>
+  <div style="font-size:1.2rem;font-weight:700;color:var(--gold);margin-bottom:12px">Откройте через Telegram</div>
+  <div style="font-size:.85rem;color:var(--dim);margin-bottom:20px;line-height:1.6">Эта карточка работает только в Telegram</div>
+  <a href="https://t.me/SnowySunsetBot" style="display:inline-block;padding:12px 24px;background:linear-gradient(135deg,var(--a2),var(--a1));border-radius:13px;color:#fff;font-weight:700;text-decoration:none;font-size:.9rem">Открыть бота →</a>
+</div>
 <div class="close-hint" id="closeHint">
   <button class="reply-btn" id="replyBtn" onclick="sendReply()">💌 Ответить</button>
   <span id="closeText" onclick="closeApp()" style="cursor:pointer">Закрыть ✕</span>
@@ -92,6 +98,9 @@ if (!cardId) {
   document.getElementById('loading').style.display = 'none';
   document.getElementById('errMsg').style.display = 'block';
   document.getElementById('errMsg').textContent = 'Карточка не найдена 😔';
+} else if (!tgApp) {
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('noTgCard').style.display = 'block';
 } else {
   loadCard(cardId);
 }
