@@ -46,6 +46,14 @@ h1{font-size:1.3rem;font-weight:800;text-align:center;margin-bottom:4px;color:va
 .del-btn{display:block;margin-top:10px;padding:7px 14px;border:1px solid rgba(255,80,80,.2);background:rgba(255,80,80,.06);border-radius:10px;color:#ff8888;font-family:'Nunito',sans-serif;font-size:.72rem;font-weight:700;cursor:pointer;transition:all .2s;text-align:center}
 .del-btn:active{transform:scale(.96);background:rgba(255,80,80,.15)}
 
+.pending-box{background:linear-gradient(135deg,rgba(212,120,156,.1),rgba(232,168,124,.1));border:1px solid rgba(245,214,128,.2);border-radius:14px;padding:14px;margin-bottom:16px;text-align:center}
+.pending-title{font-size:.88rem;font-weight:800;color:var(--gold);margin-bottom:6px}
+.pending-sub{font-size:.78rem;color:var(--dim);margin-bottom:10px}
+.pending-cards{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
+.pending-card{padding:8px 14px;background:rgba(245,214,128,.08);border:1px dashed rgba(245,214,128,.25);border-radius:10px;font-size:.78rem;color:var(--gold);font-weight:600;cursor:pointer;transition:all .2s;animation:ppulse 2s ease-in-out infinite}
+.pending-card:active{transform:scale(.96)}
+@keyframes ppulse{0%,100%{box-shadow:0 0 0 rgba(245,214,128,0)}50%{box-shadow:0 0 12px rgba(245,214,128,.15)}}
+
 .empty{text-align:center;padding:40px 20px;color:var(--dim);font-size:.88rem}
 .empty .em{font-size:2.5rem;margin-bottom:12px;display:block}
 
@@ -79,6 +87,10 @@ h1{font-size:1.3rem;font-weight:800;text-align:center;margin-bottom:4px;color:va
       <div class="tab" id="tabSent" onclick="showTab('sent')">
         <span class="num" id="numSent">—</span>Отправлено
       </div>
+    </div>
+
+    <div id="pendingSection" style="display:none">
+      <div class="pending-box" id="pendingBox"></div>
     </div>
 
     <div class="list" id="listReceived"></div>
@@ -136,14 +148,36 @@ let data = { received: [], sent: [] };
   document.getElementById('loadingEl').style.display = 'none';
   document.getElementById('main').style.display = 'block';
 
-  document.getElementById('numReceived').textContent = data.received.length;
+  const pendingCount = (data.pending || []).length;
+  document.getElementById('numReceived').textContent = data.received.length + (pendingCount ? ` +${pendingCount}` : '');
   document.getElementById('numSent').textContent = data.sent.length;
   document.getElementById('subText').textContent =
-    `Всего: ${data.received.length} получено, ${data.sent.length} отправлено`;
+    `Всего: ${data.received.length} получено` + (pendingCount ? `, ${pendingCount} ждёт` : '') + `, ${data.sent.length} отправлено`;
 
+  renderPending(data.pending || []);
   renderList('received', data.received);
   renderList('sent', data.sent);
 })();
+
+function renderPending(items) {
+  const section = document.getElementById('pendingSection');
+  const box = document.getElementById('pendingBox');
+  if (!items || items.length === 0) { section.style.display = 'none'; return; }
+
+  section.style.display = 'block';
+  const word = items.length === 1 ? 'карточка' : items.length < 5 ? 'карточки' : 'карточек';
+  box.innerHTML = `
+    <div class="pending-title">🎴 ${items.length} нераскрытых ${word}!</div>
+    <div class="pending-sub">Закрой историю и открой их в боте</div>
+    <div class="pending-cards">
+      ${items.map(c => {
+        const em = TYPE[c.card_type] || '💌';
+        const from = c.sender?.first_name || 'Кто-то';
+        return `<div class="pending-card">${em} от ${escapeHtml(from)}</div>`;
+      }).join('')}
+    </div>
+  `;
+}
 
 function renderList(type, items) {
   const el = document.getElementById(type === 'received' ? 'listReceived' : 'listSent');
@@ -200,6 +234,8 @@ function showTab(tab) {
   document.getElementById('tabSent').classList.toggle('on', tab === 'sent');
   document.getElementById('listReceived').style.display = tab === 'received' ? 'flex' : 'none';
   document.getElementById('listSent').style.display = tab === 'sent' ? 'flex' : 'none';
+  document.getElementById('pendingSection').style.display =
+    tab === 'received' && (data.pending || []).length > 0 ? 'block' : 'none';
 }
 
 function escapeHtml(s) {
