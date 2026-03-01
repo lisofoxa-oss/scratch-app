@@ -41,8 +41,10 @@ body{background:radial-gradient(ellipse 80% 60% at 20% 10%,rgba(212,120,156,.12)
 .pt{position:absolute;border-radius:50%;animation:pu .7s ease-out forwards}
 @keyframes pu{0%{transform:scale(0) translate(0,0);opacity:1}100%{transform:scale(1) translate(var(--tx),var(--ty));opacity:0}}
 
-.close-hint{position:fixed;bottom:20px;font-size:.78rem;color:var(--dim);z-index:1;opacity:0;transition:opacity .5s}
+.close-hint{position:fixed;bottom:20px;font-size:.78rem;color:var(--dim);z-index:1;opacity:0;transition:opacity .5s;display:flex;gap:10px;align-items:center}
 .close-hint.show{opacity:1}
+.reply-btn{padding:8px 18px;background:rgba(245,214,128,.1);border:1px solid rgba(245,214,128,.2);border-radius:12px;color:var(--gold);font-family:'Nunito',sans-serif;font-size:.82rem;font-weight:700;cursor:pointer;transition:all .2s;text-decoration:none}
+.reply-btn:active{transform:scale(.96)}
 </style>
 </head>
 <body>
@@ -66,7 +68,10 @@ body{background:radial-gradient(ellipse 80% 60% at 20% 10%,rgba(212,120,156,.12)
 
 <div class="loading" id="loading">Загружаю карточку...</div>
 <div class="error-msg" id="errMsg" style="display:none"></div>
-<div class="close-hint" id="closeHint">Нажми чтобы закрыть</div>
+<div class="close-hint" id="closeHint">
+  <button class="reply-btn" id="replyBtn" onclick="sendReply()">💌 Ответить</button>
+  <span id="closeText" onclick="closeApp()" style="cursor:pointer">Закрыть ✕</span>
+</div>
 
 <script>
 const API = 'https://snowy-sunset-86b7.lisofoxa.workers.dev';
@@ -106,23 +111,25 @@ async function loadCard(id) {
 
     const card = await res.json();
 
-    // Set content
-    document.getElementById('cardEmoji').textContent =
-      card.category === 'compliment' ? '💫' :
-      card.category === 'gift' ? '🎁' :
-      card.category === 'task' ? '✨' : '💌';
+    // Category display
+    const catMap = {
+      compliment: { emoji: '💫', label: 'Комплимент', color: 'var(--a2)' },
+      gift: { emoji: '🎁', label: 'Подарок', color: 'var(--gold)' },
+      birthday: { emoji: '🎂', label: 'Поздравление', color: 'var(--gold)' },
+      confession: { emoji: '💖', label: 'Признание', color: 'var(--a2)' },
+      truth: { emoji: '❓', label: 'Правда', color: 'var(--a1)' },
+      dare: { emoji: '🎯', label: 'Действие', color: 'var(--a1)' },
+      custom: { emoji: '💌', label: 'Послание', color: 'var(--gold)' },
+    };
+    const cat = catMap[card.category] || catMap.custom;
 
-    document.getElementById('cardLabel').textContent =
-      card.category === 'compliment' ? 'Комплимент' :
-      card.category === 'gift' ? 'Подарок' :
-      card.category === 'task' ? 'Задание' : 'Послание';
-
-    // Color
-    const lbl = document.getElementById('cardLabel');
-    if (card.category === 'gift') lbl.style.color = 'var(--gold)';
-    else if (card.category === 'task') lbl.style.color = 'var(--a1)';
-
+    document.getElementById('cardEmoji').textContent = cat.emoji;
+    document.getElementById('cardLabel').textContent = cat.label;
+    document.getElementById('cardLabel').style.color = cat.color;
     document.getElementById('cardMsg').textContent = card.text;
+
+    // Store sender_id for reply
+    window._cardSenderId = card.sender_id;
 
     if (card.recipient_name) {
       document.getElementById('titleText').textContent = card.recipient_name + ', это для тебя ✨';
@@ -231,10 +238,23 @@ function setupScratch() {
   window.addEventListener('resize',()=>{if(!revealed)resize()});
 }
 
-// Close hint click
-document.getElementById('closeHint').addEventListener('click',()=>{
-  if(tgApp)tgApp.close();
-});
+// Reply
+async function sendReply() {
+  const userId = tgApp?.initDataUnsafe?.user?.id;
+  if (!userId) return;
+  try {
+    await fetch(API + '/api/reply', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user_id: userId, sender_id: window._cardSenderId }),
+    });
+  } catch (e) {}
+  if (tgApp) tgApp.close();
+}
+
+function closeApp() {
+  if (tgApp) tgApp.close();
+}
 </script>
 </body>
 </html>

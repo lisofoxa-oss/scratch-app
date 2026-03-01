@@ -14,46 +14,88 @@ body{background:radial-gradient(ellipse 80% 60% at 20% 10%,rgba(212,120,156,.12)
 
 .wrap{max-width:440px;margin:0 auto}
 h1{font-size:1.4rem;font-weight:800;text-align:center;margin-bottom:4px;color:var(--gold)}
-.sub{font-size:.85rem;color:var(--dim);text-align:center;margin-bottom:28px}
+.sub{font-size:.82rem;color:var(--dim);text-align:center;margin-bottom:24px}
 
-.field{margin-bottom:22px}
-.label{font-size:.8rem;font-weight:700;color:var(--dim);margin-bottom:8px;letter-spacing:.03em}
-.input{width:100%;padding:13px 16px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:14px;color:var(--tx);font-family:'Nunito',sans-serif;font-size:.95rem;outline:none;transition:all .2s}
+.field{margin-bottom:20px}
+.label{font-size:.78rem;font-weight:700;color:var(--dim);margin-bottom:8px;letter-spacing:.03em}
+.input{width:100%;padding:12px 14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:13px;color:var(--tx);font-family:'Nunito',sans-serif;font-size:.92rem;outline:none;transition:all .2s}
 .input:focus{border-color:rgba(245,214,128,.3);background:rgba(255,255,255,.06)}
 .input::placeholder{color:var(--dim);opacity:.5}
+textarea.input{min-height:80px;resize:vertical;line-height:1.5;font-size:.86rem}
+.hint{margin-top:4px;font-size:.68rem;color:var(--dim);opacity:.55}
 
-.row{display:flex;gap:8px;flex-wrap:wrap}
-.tog{flex:1;min-width:0;padding:11px 6px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:14px;color:var(--dim);font-family:'Nunito',sans-serif;font-size:.82rem;font-weight:600;cursor:pointer;transition:all .2s;text-align:center}
+.row{display:flex;gap:7px;flex-wrap:wrap}
+.tog{flex:1;min-width:0;padding:10px 5px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:13px;color:var(--dim);font-family:'Nunito',sans-serif;font-size:.8rem;font-weight:600;cursor:pointer;transition:all .2s;text-align:center}
 .tog:active{transform:scale(.97)}
 .tog.on{background:rgba(245,214,128,.1);border-color:rgba(245,214,128,.3);color:var(--gold)}
-.tog .em{display:block;font-size:1.2rem;margin-bottom:3px}
-.tog .tx{display:block;font-size:.7rem}
+.tog .em{display:block;font-size:1.1rem;margin-bottom:2px}
+.tog .tx{display:block;font-size:.65rem}
 
-textarea.input{min-height:90px;resize:vertical;line-height:1.5;font-size:.88rem}
-.hint{margin-top:5px;font-size:.7rem;color:var(--dim);opacity:.6}
+/* Type cards - bigger */
+.type-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.type-btn{padding:14px 8px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:14px;color:var(--dim);font-family:'Nunito',sans-serif;cursor:pointer;transition:all .2s;text-align:center}
+.type-btn:active{transform:scale(.97)}
+.type-btn.on{background:rgba(245,214,128,.08);border-color:rgba(245,214,128,.25);color:var(--gold)}
+.type-btn .em{display:block;font-size:1.6rem;margin-bottom:4px}
+.type-btn .tx{display:block;font-size:.78rem;font-weight:700}
+.type-btn .desc{display:block;font-size:.62rem;color:var(--dim);margin-top:2px}
 
-.send-btn{display:block;width:100%;padding:15px;background:linear-gradient(135deg,var(--a2),var(--a1));border:none;border-radius:16px;color:#fff;font-family:'Nunito',sans-serif;font-size:1rem;font-weight:700;cursor:pointer;transition:all .3s;box-shadow:0 4px 18px rgba(212,120,156,.3);margin-top:8px}
+.section{display:none}
+.section.show{display:block}
+
+.send-btn{display:block;width:100%;padding:14px;background:linear-gradient(135deg,var(--a2),var(--a1));border:none;border-radius:15px;color:#fff;font-family:'Nunito',sans-serif;font-size:.95rem;font-weight:700;cursor:pointer;transition:all .3s;box-shadow:0 4px 18px rgba(212,120,156,.3);margin-top:12px}
 .send-btn:active{transform:scale(.97)}
 .send-btn:disabled{opacity:.5;cursor:not-allowed}
 
-.result{display:none;text-align:center;margin-top:24px;padding:20px;background:rgba(255,255,255,.03);border:1px solid rgba(245,214,128,.15);border-radius:16px}
+.result{display:none;text-align:center;margin-top:20px;padding:18px;background:rgba(255,255,255,.03);border:1px solid rgba(245,214,128,.15);border-radius:14px}
 .result.show{display:block}
-.result .link{font-size:.82rem;color:var(--gold);word-break:break-all;margin:12px 0;line-height:1.5}
-.result .info{font-size:.85rem;color:var(--tx);margin-bottom:8px}
+.result .info{font-size:.85rem;color:var(--tx);margin-bottom:6px}
+.result .link{font-size:.78rem;color:var(--gold);word-break:break-all;line-height:1.5}
 
-.error{display:none;text-align:center;padding:12px;background:rgba(255,80,80,.1);border:1px solid rgba(255,80,80,.2);border-radius:12px;margin-top:12px;font-size:.85rem;color:#ff8888}
+.error{display:none;text-align:center;padding:10px;background:rgba(255,80,80,.1);border:1px solid rgba(255,80,80,.2);border-radius:11px;margin-top:10px;font-size:.82rem;color:#ff8888}
 .error.show{display:block}
+
+/* Truth or dare sub-toggle */
+.tod-row{display:flex;gap:8px;margin-bottom:12px}
+.tod-btn{flex:1;padding:12px;border-radius:13px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.03);cursor:pointer;text-align:center;font-family:'Nunito',sans-serif;transition:all .2s;color:var(--dim)}
+.tod-btn.on{border-color:rgba(232,168,124,.3);background:rgba(232,168,124,.08);color:var(--a1)}
+.tod-btn .em{display:block;font-size:1.3rem;margin-bottom:2px}
+.tod-btn .tx{font-size:.75rem;font-weight:700}
 </style>
 </head>
 <body>
 
 <div class="wrap">
   <h1>✨ Создать карточку</h1>
-  <div class="sub">Выбери параметры и отправь ссылку</div>
+  <div class="sub">Выбери тип, заполни и отправь ссылку</div>
 
+  <!-- Step 1: Card type -->
+  <div class="field">
+    <div class="label">Что отправляем?</div>
+    <div class="type-row" id="cardType">
+      <button class="type-btn on" data-v="regular">
+        <span class="em">💌</span><span class="tx">Просто так</span>
+        <span class="desc">Комплимент или подарок</span>
+      </button>
+      <button class="type-btn" data-v="birthday">
+        <span class="em">🎂</span><span class="tx">День рождения</span>
+        <span class="desc">Поздравление</span>
+      </button>
+      <button class="type-btn" data-v="confession">
+        <span class="em">💖</span><span class="tx">Признание</span>
+        <span class="desc">Признание в чувствах</span>
+      </button>
+      <button class="type-btn" data-v="tod">
+        <span class="em">🎲</span><span class="tx">Правда / Действие</span>
+        <span class="desc">Вопрос или задание</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Name + Gender (always shown) -->
   <div class="field">
     <div class="label">Имя получателя</div>
-    <input type="text" class="input" id="name" placeholder="Например, Аня" maxlength="30">
+    <input type="text" class="input" id="name" placeholder="Например, Евлампия" maxlength="30">
   </div>
 
   <div class="field">
@@ -64,28 +106,41 @@ textarea.input{min-height:90px;resize:vertical;line-height:1.5;font-size:.88rem}
     </div>
   </div>
 
-  <div class="field">
-    <div class="label">Настроение</div>
-    <div class="row" id="tone">
-      <button class="tog" data-v="friend"><span class="em">🤝</span><span class="tx">Друзья</span></button>
-      <button class="tog on" data-v="flirt"><span class="em">😏</span><span class="tx">Флирт</span></button>
-      <button class="tog" data-v="romance"><span class="em">💕</span><span class="tx">Романтика</span></button>
-      <button class="tog" data-v="love"><span class="em">❤️</span><span class="tx">Любовь</span></button>
+  <!-- Tone (only for regular) -->
+  <div class="section show" id="toneSection">
+    <div class="field">
+      <div class="label">Настроение</div>
+      <div class="row" id="tone">
+        <button class="tog" data-v="friend"><span class="em">🤝</span><span class="tx">Друзья</span></button>
+        <button class="tog on" data-v="flirt"><span class="em">😏</span><span class="tx">Флирт</span></button>
+        <button class="tog" data-v="romance"><span class="em">💕</span><span class="tx">Романтика</span></button>
+        <button class="tog" data-v="love"><span class="em">❤️</span><span class="tx">Любовь</span></button>
+      </div>
     </div>
   </div>
 
+  <!-- Truth or Dare picker -->
+  <div class="section" id="todSection">
+    <div class="field">
+      <div class="label">Что отправить?</div>
+      <div class="tod-row" id="todPick">
+        <button class="tod-btn on" data-v="truth"><span class="em">❓</span><span class="tx">Правда</span></button>
+        <button class="tod-btn" data-v="dare"><span class="em">🎯</span><span class="tx">Действие</span></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Custom text (always) -->
   <div class="field">
     <div class="label">Свой текст <span style="opacity:.5">(необязательно)</span></div>
-    <textarea class="input" id="custom" placeholder="Если пустое — подберётся случайный комплимент или задание"></textarea>
-    <div class="hint">Подставится в карточку как есть</div>
+    <textarea class="input" id="custom" placeholder="Если пустое — подберётся случайный"></textarea>
+    <div class="hint">Подставится как есть</div>
   </div>
 
   <button class="send-btn" id="sendBtn" onclick="create()">Создать карточку ✨</button>
-
   <div class="error" id="error"></div>
-
   <div class="result" id="result">
-    <div class="info">✅ Карточка создана! Ссылка отправлена тебе в бот 💌</div>
+    <div class="info">✅ Карточка создана! Ссылка в боте 💌</div>
     <div class="link" id="resultLink"></div>
   </div>
 </div>
@@ -95,38 +150,49 @@ const API = 'https://snowy-sunset-86b7.lisofoxa.workers.dev';
 const tgApp = window.Telegram?.WebApp;
 if (tgApp) tgApp.expand();
 
-// Toggle buttons
-document.querySelectorAll('.row').forEach(row => {
-  row.querySelectorAll('.tog').forEach(btn => {
+// Toggle logic
+document.querySelectorAll('.row, .tod-row').forEach(row => {
+  row.querySelectorAll('.tog, .tod-btn').forEach(btn => {
     btn.addEventListener('click', () => {
-      row.querySelectorAll('.tog').forEach(b => b.classList.remove('on'));
+      row.querySelectorAll('.tog, .tod-btn').forEach(b => b.classList.remove('on'));
       btn.classList.add('on');
     });
   });
 });
 
-function getVal(id) {
-  return document.querySelector(`#${id} .tog.on`)?.dataset.v;
+// Card type toggle
+const typeRow = document.getElementById('cardType');
+typeRow.querySelectorAll('.type-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    typeRow.querySelectorAll('.type-btn').forEach(b => b.classList.remove('on'));
+    btn.classList.add('on');
+    updateSections();
+  });
+});
+
+function updateSections() {
+  const type = document.querySelector('#cardType .type-btn.on')?.dataset.v;
+  document.getElementById('toneSection').classList.toggle('show', type === 'regular');
+  document.getElementById('todSection').classList.toggle('show', type === 'tod');
 }
+
+function getV(id) { return document.querySelector(`#${id} .on`)?.dataset.v; }
 
 async function create() {
   const name = document.getElementById('name').value.trim();
-  if (!name) {
-    showError('Введи имя получателя');
-    return;
-  }
+  if (!name) return showErr('Введи имя получателя');
 
   const senderId = tgApp?.initDataUnsafe?.user?.id;
   const senderName = tgApp?.initDataUnsafe?.user?.first_name;
-  if (!senderId) {
-    showError('Открой через Telegram бота');
-    return;
-  }
+  if (!senderId) return showErr('Открой через Telegram бота');
 
   const btn = document.getElementById('sendBtn');
-  btn.disabled = true;
-  btn.textContent = 'Создаём...';
-  hideError();
+  btn.disabled = true; btn.textContent = 'Создаём...';
+  hideErr();
+
+  let cardType = getV('cardType') || 'regular';
+  // Truth or Dare → split into truth / dare
+  if (cardType === 'tod') cardType = getV('todPick') || 'truth';
 
   try {
     const res = await fetch(API + '/api/create', {
@@ -136,44 +202,32 @@ async function create() {
         sender_id: senderId,
         sender_name: senderName,
         recipient_name: name,
-        gender: getVal('gender') || 'f',
-        tone: getVal('tone') || 'flirt',
+        gender: getV('gender') || 'f',
+        tone: getV('tone') || 'flirt',
+        card_type: cardType,
         custom_text: document.getElementById('custom').value.trim(),
       }),
     });
 
     const data = await res.json();
-
     if (!res.ok) {
-      showError(data.message || data.error || 'Ошибка');
-      btn.disabled = false;
-      btn.textContent = 'Создать карточку ✨';
+      showErr(data.message || data.error || 'Ошибка');
+      btn.disabled = false; btn.textContent = 'Создать карточку ✨';
       return;
     }
 
     document.getElementById('resultLink').textContent = data.link;
     document.getElementById('result').classList.add('show');
     btn.textContent = 'Готово! ✅';
-
-    // Close Web App after delay
-    setTimeout(() => {
-      if (tgApp) tgApp.close();
-    }, 2000);
+    setTimeout(() => { if (tgApp) tgApp.close(); }, 2500);
   } catch (e) {
-    showError('Ошибка сети, попробуй ещё раз');
-    btn.disabled = false;
-    btn.textContent = 'Создать карточку ✨';
+    showErr('Ошибка сети');
+    btn.disabled = false; btn.textContent = 'Создать карточку ✨';
   }
 }
 
-function showError(msg) {
-  const el = document.getElementById('error');
-  el.textContent = msg;
-  el.classList.add('show');
-}
-function hideError() {
-  document.getElementById('error').classList.remove('show');
-}
+function showErr(m) { const e = document.getElementById('error'); e.textContent = m; e.classList.add('show'); }
+function hideErr() { document.getElementById('error').classList.remove('show'); }
 </script>
 </body>
 </html>
