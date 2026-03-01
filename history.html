@@ -160,8 +160,11 @@ function renderList(type, items) {
     const catLabel = CAT[c.text_category] || '💌 Послание';
     const date = fmtDate(type === 'received' ? c.opened_at : c.created_at);
     const nameLabel = type === 'received'
-      ? (c.recipient_name ? `Для: ${c.recipient_name}` : '')
+      ? `От: ${c.sender?.first_name || c.sender?.username || 'Аноним'}`
       : `Для: ${c.recipient_name}`;
+    const nameLabel2 = type === 'received'
+      ? (c.recipient_name ? `<div class="card-name" style="font-size:.72rem;color:var(--dim)">Для: ${c.recipient_name}</div>` : '')
+      : '';
 
     const statusHtml = type === 'sent'
       ? `<div class="card-status ${c.status === 'opened' ? 'opened' : 'waiting'}">${c.status === 'opened' ? '✅ Открыта' : '⏳ Ждёт'}</div>`
@@ -173,6 +176,7 @@ function renderList(type, items) {
         <div class="card-meta">
           <div class="card-label">${catLabel}</div>
           <div class="card-name">${nameLabel}</div>
+          ${nameLabel2}
           <div class="card-date">${date}</div>
         </div>
         ${statusHtml}
