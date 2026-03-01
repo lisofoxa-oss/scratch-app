@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Мои карточки</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0f0a1a;--card:#1a1228;--a1:#e8a87c;--a2:#d4789c;--gold:#f5d680;--tx:#f0e6d8;--dim:#9a8fb0}
+html,body{min-height:100dvh;font-family:'Nunito',sans-serif;background:var(--bg);color:var(--tx);-webkit-tap-highlight-color:transparent}
+body{background:radial-gradient(ellipse 80% 60% at 20% 10%,rgba(212,120,156,.12)0,transparent 60%),radial-gradient(ellipse 60% 50% at 80% 90%,rgba(232,168,124,.1)0,transparent 60%),var(--bg);padding:16px 14px 40px}
+
+.wrap{max-width:440px;margin:0 auto}
+h1{font-size:1.3rem;font-weight:800;text-align:center;margin-bottom:4px;color:var(--gold)}
+.sub{font-size:.8rem;color:var(--dim);text-align:center;margin-bottom:20px}
+
+.tabs{display:flex;gap:6px;margin-bottom:18px}
+.tab{flex:1;padding:10px;border-radius:12px;border:1px solid rgba(255,255,255,.06);background:rgba(255,255,255,.03);text-align:center;cursor:pointer;font-size:.82rem;font-weight:700;color:var(--dim);transition:all .2s}
+.tab.on{background:rgba(245,214,128,.08);border-color:rgba(245,214,128,.2);color:var(--gold)}
+.tab:active{transform:scale(.97)}
+.tab .num{display:block;font-size:1.1rem;font-weight:800;margin-bottom:1px}
+
+.list{display:flex;flex-direction:column;gap:10px}
+
+.card-item{background:var(--card);border:1px solid rgba(255,255,255,.05);border-radius:14px;padding:14px;transition:all .2s;cursor:pointer;position:relative;overflow:hidden}
+.card-item:active{transform:scale(.98)}
+.card-item.expanded .card-text{max-height:300px}
+
+.card-head{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:6px}
+.card-emoji{font-size:1.5rem}
+.card-meta{flex:1}
+.card-label{font-size:.78rem;font-weight:700;color:var(--gold)}
+.card-name{font-size:.88rem;font-weight:600;margin-top:2px}
+.card-date{font-size:.65rem;color:var(--dim)}
+.card-status{font-size:.6rem;padding:3px 8px;border-radius:8px;font-weight:700;flex-shrink:0;align-self:flex-start}
+.card-status.opened{background:rgba(100,200,100,.1);color:rgba(150,230,150,1)}
+.card-status.waiting{background:rgba(245,214,128,.1);color:var(--gold)}
+
+.card-text{font-size:.82rem;line-height:1.5;color:rgba(240,230,216,.8);max-height:0;overflow:hidden;transition:max-height .3s ease}
+.card-item.expanded .card-text{margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,.04)}
+
+.expand-hint{font-size:.6rem;color:var(--dim);text-align:center;margin-top:6px;opacity:.5}
+.card-item.expanded .expand-hint{display:none}
+
+.empty{text-align:center;padding:40px 20px;color:var(--dim);font-size:.88rem}
+.empty .em{font-size:2.5rem;margin-bottom:12px;display:block}
+
+.loading{text-align:center;padding:40px;color:var(--dim);font-size:.88rem}
+
+.no-tg{text-align:center;padding-top:80px}
+.no-tg .em{font-size:3rem;margin-bottom:16px}
+.no-tg h2{font-size:1.1rem;color:var(--gold);margin-bottom:10px}
+.no-tg p{font-size:.85rem;color:var(--dim);margin-bottom:20px}
+.no-tg a{display:inline-block;padding:12px 24px;background:linear-gradient(135deg,var(--a2),var(--a1));border-radius:13px;color:#fff;font-weight:700;text-decoration:none;font-size:.9rem}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="no-tg" id="noTg" style="display:none">
+    <div class="em">🔒</div>
+    <h2>Откройте через Telegram</h2>
+    <p>История карточек доступна только в боте</p>
+    <a href="https://t.me/SnowySunsetBot">Открыть бота →</a>
+  </div>
+
+  <div id="main" style="display:none">
+    <h1>📋 Мои карточки</h1>
+    <div class="sub" id="subText">Загружаю...</div>
+
+    <div class="tabs">
+      <div class="tab on" id="tabReceived" onclick="showTab('received')">
+        <span class="num" id="numReceived">—</span>Получено
+      </div>
+      <div class="tab" id="tabSent" onclick="showTab('sent')">
+        <span class="num" id="numSent">—</span>Отправлено
+      </div>
+    </div>
+
+    <div class="list" id="listReceived"></div>
+    <div class="list" id="listSent" style="display:none"></div>
+  </div>
+
+  <div class="loading" id="loadingEl">Загружаю карточки...</div>
+</div>
+
+<script>
+const API = 'https://snowy-sunset-86b7.lisofoxa.workers.dev';
+const tgApp = window.Telegram?.WebApp;
+if (tgApp) tgApp.expand();
+
+const CAT = {
+  compliment:'💫 Комплимент', gift:'🎁 Подарок', birthday:'🎂 Поздравление',
+  confession:'💖 Признание', truth:'❓ Правда', dare:'🎯 Действие', custom:'💌 Послание',
+};
+
+const TYPE = {
+  regular:'💌', birthday:'🎂', confession:'💖', truth:'❓', dare:'🎯',
+};
+
+function fmtDate(d) {
+  if (!d) return '';
+  const dt = new Date(d);
+  const dd = dt.getDate().toString().padStart(2,'0');
+  const mm = (dt.getMonth()+1).toString().padStart(2,'0');
+  const hh = dt.getHours().toString().padStart(2,'0');
+  const mi = dt.getMinutes().toString().padStart(2,'0');
+  return `${dd}.${mm} ${hh}:${mi}`;
+}
+
+let data = { received: [], sent: [] };
+
+(async function init() {
+  const userId = tgApp?.initDataUnsafe?.user?.id;
+  if (!tgApp || !userId) {
+    document.getElementById('loadingEl').style.display = 'none';
+    document.getElementById('noTg').style.display = 'block';
+    return;
+  }
+
+  try {
+    const res = await fetch(API + '/api/history', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user_id: userId }),
+    });
+    data = await res.json();
+  } catch (e) {
+    data = { received: [], sent: [] };
+  }
+
+  document.getElementById('loadingEl').style.display = 'none';
+  document.getElementById('main').style.display = 'block';
+
+  document.getElementById('numReceived').textContent = data.received.length;
+  document.getElementById('numSent').textContent = data.sent.length;
+  document.getElementById('subText').textContent =
+    `Всего: ${data.received.length} получено, ${data.sent.length} отправлено`;
+
+  renderList('received', data.received);
+  renderList('sent', data.sent);
+})();
+
+function renderList(type, items) {
+  const el = document.getElementById(type === 'received' ? 'listReceived' : 'listSent');
+  el.innerHTML = '';
+
+  if (items.length === 0) {
+    el.innerHTML = `<div class="empty"><span class="em">${type === 'received' ? '📭' : '💌'}</span>${type === 'received' ? 'Пока нет полученных карточек' : 'Пока ничего не отправлял(а)'}</div>`;
+    return;
+  }
+
+  items.forEach((c, i) => {
+    const div = document.createElement('div');
+    div.className = 'card-item';
+
+    const emoji = TYPE[c.card_type] || '💌';
+    const catLabel = CAT[c.text_category] || '💌 Послание';
+    const date = fmtDate(type === 'received' ? c.opened_at : c.created_at);
+    const nameLabel = type === 'received'
+      ? (c.recipient_name ? `Для: ${c.recipient_name}` : '')
+      : `Для: ${c.recipient_name}`;
+
+    const statusHtml = type === 'sent'
+      ? `<div class="card-status ${c.status === 'opened' ? 'opened' : 'waiting'}">${c.status === 'opened' ? '✅ Открыта' : '⏳ Ждёт'}</div>`
+      : '';
+
+    div.innerHTML = `
+      <div class="card-head">
+        <div class="card-emoji">${emoji}</div>
+        <div class="card-meta">
+          <div class="card-label">${catLabel}</div>
+          <div class="card-name">${nameLabel}</div>
+          <div class="card-date">${date}</div>
+        </div>
+        ${statusHtml}
+      </div>
+      <div class="card-text">${escapeHtml(c.text_content)}</div>
+      <div class="expand-hint">нажми чтобы раскрыть</div>
+    `;
+
+    div.addEventListener('click', () => div.classList.toggle('expanded'));
+    el.appendChild(div);
+  });
+}
+
+function showTab(tab) {
+  document.getElementById('tabReceived').classList.toggle('on', tab === 'received');
+  document.getElementById('tabSent').classList.toggle('on', tab === 'sent');
+  document.getElementById('listReceived').style.display = tab === 'received' ? 'flex' : 'none';
+  document.getElementById('listSent').style.display = tab === 'sent' ? 'flex' : 'none';
+}
+
+function escapeHtml(s) {
+  if (!s) return '';
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+}
+</script>
+</body>
+</html>
